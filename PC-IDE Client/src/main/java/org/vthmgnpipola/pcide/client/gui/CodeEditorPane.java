@@ -7,12 +7,19 @@ import java.nio.file.Path;
 import javax.swing.JPanel;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rtextarea.RTextScrollPane;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.vthmgnpipola.pcide.client.lang.FileSystemWatcher;
+
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 /**
  * A code editor pane is a component that has a {@link RTextScrollPane} with a {@link RSyntaxTextArea} inside, to
  * make it faster and cleaner to create new code editors.
  */
 public class CodeEditorPane extends JPanel {
+    private static final Logger logger = LoggerFactory.getLogger(CodeEditorPane.class);
+
     public CodeEditorPane(Path path) throws IOException {
         init(path);
     }
@@ -34,5 +41,16 @@ public class CodeEditorPane extends JPanel {
         scrollPane.setLineNumbersEnabled(true);
         scrollPane.setFoldIndicatorEnabled(true);
         add(scrollPane, BorderLayout.CENTER);
+
+        FileSystemWatcher.getInstance().registerListener(path, e -> {
+            if (e.eventKind() == ENTRY_MODIFY) {
+                try {
+                    textArea.setText(Files.readString(path));
+                } catch (IOException ioException) {
+                    logger.error("Error updating editor of file '" + path.toString() + "'!");
+                    logger.error(ioException.getMessage());
+                }
+            }
+        });
     }
 }

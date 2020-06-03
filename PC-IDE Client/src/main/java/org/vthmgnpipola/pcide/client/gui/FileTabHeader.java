@@ -4,7 +4,7 @@ import com.formdev.flatlaf.icons.FlatInternalFrameCloseIcon;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.util.UUID;
+import java.nio.file.Path;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -12,16 +12,22 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
-public class TabHeader extends JPanel {
+/**
+ * A file tab header is a component to be used in {@link JTabbedPane} tabs. It has a title and a close button.
+ *
+ * This class could be more generic, but since I'm using this solely for one task, it can be like that (at least for
+ * now).
+ */
+public class FileTabHeader extends JPanel {
     private static final Color TRANSPARENT = new Color(0, 0, 0, 0);
     private static final Dimension MAXIMUM_CLOSE_BUTTON_SIZE = new Dimension(16, 8);
 
     private final JTabbedPane tabbedPane;
-    private final UUID id;
+    private final Path path;
 
-    public TabHeader(String title, JTabbedPane tabbedPane) {
+    public FileTabHeader(Path path, String title, JTabbedPane tabbedPane) {
         this.tabbedPane = tabbedPane;
-        this.id = UUID.randomUUID();
+        this.path = path;
         init(title);
     }
 
@@ -35,7 +41,11 @@ public class TabHeader extends JPanel {
         closeButton.setBorder(null);
         closeButton.addActionListener(e -> {
             for (int i = 0; i < tabbedPane.getTabCount(); i++) {
-                if (tabbedPane.getTabComponentAt(i) instanceof TabHeader header && header.id.equals(this.id)) {
+                // This will iterate through all tabs until one of them has the same file path as this one. This may
+                // remove a tab you don't want to remove since I'm not using a unique identifier, like a UUID, but
+                // since I'm going to check if there's a tab open for a path already I'm going to leave it like that.
+                if (tabbedPane.getTabComponentAt(i) instanceof FileTabHeader header &&
+                        header.path.equals(this.path)) {
                     tabbedPane.removeTabAt(i);
                     break;
                 }
@@ -48,8 +58,16 @@ public class TabHeader extends JPanel {
         add(tabTitle, BorderLayout.CENTER);
     }
 
-    public static void addTab(JComponent content, String title, JTabbedPane tabbedPane) {
-        TabHeader header = new TabHeader(title, tabbedPane);
+    public static void addTab(JComponent content, Path path, String title, JTabbedPane tabbedPane) {
+        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+            // If there is a tab with the same path open, it will select this tab instead of opening another one.
+            if (tabbedPane.getTabComponentAt(i) instanceof FileTabHeader header && header.path.equals(path)) {
+                tabbedPane.setSelectedIndex(i);
+                return;
+            }
+        }
+
+        FileTabHeader header = new FileTabHeader(path, title, tabbedPane);
         tabbedPane.addTab(title, content);
         tabbedPane.setTabComponentAt(tabbedPane.getTabCount() - 1, header);
     }

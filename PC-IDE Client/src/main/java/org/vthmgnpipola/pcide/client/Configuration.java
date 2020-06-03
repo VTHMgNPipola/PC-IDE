@@ -12,6 +12,7 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vthmgnpipola.pcide.client.lang.FileSystemWatcher;
 import org.vthmgnpipola.pcide.client.lang.LocalPseudoCodeInterpreter;
 import org.vthmgnpipola.pcide.client.lang.PseudoCodeInterpreter;
 import org.vthmgnpipola.pcide.client.lang.ServerPseudoCodeInterpreter;
@@ -96,6 +97,9 @@ public class Configuration {
             logger.debug("Server disabled, creating LocalPseudoCodeInterpreter...");
             interpreter = createLocalPseudoCodeInterpreter();
         }
+
+        logger.debug("Starting FileSystemWatcher...");
+        FileSystemWatcher.getInstance().start();
     }
 
     private ServerPseudoCodeInterpreter createServerPseudoCodeInterpreter() {

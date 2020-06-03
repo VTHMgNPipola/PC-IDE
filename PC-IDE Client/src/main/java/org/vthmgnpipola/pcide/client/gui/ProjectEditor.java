@@ -22,7 +22,11 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.client.Configuration;
+import org.vthmgnpipola.pcide.client.lang.FileSystemWatcher;
 import org.vthmgnpipola.pcide.client.lang.Project;
+
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 
 /**
  * The project editor is where the code is actually made and executed. The editor is composed of three main parts:
@@ -54,6 +58,7 @@ public class ProjectEditor extends JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
+                FileSystemWatcher.getInstance().unregisterListener(project.path());
                 new ProjectDashboard().setVisible(true);
             }
         });
@@ -77,7 +82,8 @@ public class ProjectEditor extends JFrame {
                             Files.isRegularFile(fileNode.path)) {
                         Path path = fileNode.path;
                         try {
-                            TabHeader.addTab(new CodeEditorPane(path), path.getFileName().toString(), editorTabs);
+                            FileTabHeader.addTab(new CodeEditorPane(path), path, path.getFileName().toString(),
+                                    editorTabs);
                         } catch (IOException ioException) {
                             logger.error("Error opening editor on file '" + path.toString() + "'!");
                             logger.error(ioException.getMessage());
@@ -107,6 +113,14 @@ public class ProjectEditor extends JFrame {
         setJMenuBar(menuBar);
         pack();
         setLocationRelativeTo(null);
+
+        FileSystemWatcher.getInstance().setWorkingDirectory(project.path());
+        FileSystemWatcher.getInstance().registerListener(project.path(), e -> {
+            if (e.eventKind() == ENTRY_CREATE || e.eventKind() == ENTRY_DELETE) {
+                updateFileTree();
+                fileTree.updateUI();
+            }
+        });
     }
 
     private void updateFileTree() {

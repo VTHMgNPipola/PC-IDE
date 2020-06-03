@@ -1,9 +1,11 @@
 package org.vthmgnpipola.pcide.client;
 
+import java.io.IOException;
 import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.client.gui.ProjectDashboard;
+import org.vthmgnpipola.pcide.client.lang.FileSystemWatcher;
 import org.vthmgnpipola.pcide.client.lang.ServerPseudoCodeInterpreter;
 
 /**
@@ -41,6 +43,13 @@ public class Client {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if (Configuration.getInstance().getInterpreter() instanceof ServerPseudoCodeInterpreter interpreter) {
                 interpreter.close();
+            }
+
+            try {
+                FileSystemWatcher.getInstance().close();
+            } catch (IOException e) {
+                logger.error("Unable to close FileSystemWatcher!");
+                logger.error(e.getMessage());
             }
         }));
     }
