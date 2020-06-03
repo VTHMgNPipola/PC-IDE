@@ -1,6 +1,9 @@
 package org.vthmgnpipola.pcide.client.gui;
 
 import java.awt.BorderLayout;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import javax.swing.JPanel;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rtextarea.RTextScrollPane;
@@ -10,14 +13,14 @@ import org.fife.ui.rtextarea.RTextScrollPane;
  * make it faster and cleaner to create new code editors.
  */
 public class CodeEditorPane extends JPanel {
-    public CodeEditorPane() {
-        init();
+    public CodeEditorPane(Path path) throws IOException {
+        init(path);
     }
 
-    private void init() {
+    private void init(Path path) throws IOException {
         setLayout(new BorderLayout());
 
-        RSyntaxTextArea textArea = new RSyntaxTextArea();
+        RSyntaxTextArea textArea = new RSyntaxTextArea(Files.readString(path));
         textArea.setAntiAliasingEnabled(true);
         textArea.setAutoIndentEnabled(true);
         textArea.setAnimateBracketMatching(true);

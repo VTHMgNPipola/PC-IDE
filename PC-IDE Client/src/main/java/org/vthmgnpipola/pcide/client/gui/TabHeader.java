@@ -4,6 +4,7 @@ import com.formdev.flatlaf.icons.FlatInternalFrameCloseIcon;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.util.UUID;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -16,11 +17,11 @@ public class TabHeader extends JPanel {
     private static final Dimension MAXIMUM_CLOSE_BUTTON_SIZE = new Dimension(16, 8);
 
     private final JTabbedPane tabbedPane;
-    private final int index;
+    private final UUID id;
 
-    public TabHeader(String title, JTabbedPane tabbedPane, int index) {
+    public TabHeader(String title, JTabbedPane tabbedPane) {
         this.tabbedPane = tabbedPane;
-        this.index = index;
+        this.id = UUID.randomUUID();
         init(title);
     }
 
@@ -32,7 +33,14 @@ public class TabHeader extends JPanel {
         closeButton.setPreferredSize(MAXIMUM_CLOSE_BUTTON_SIZE);
         closeButton.setContentAreaFilled(false);
         closeButton.setBorder(null);
-        closeButton.addActionListener(e -> tabbedPane.removeTabAt(index));
+        closeButton.addActionListener(e -> {
+            for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+                if (tabbedPane.getTabComponentAt(i) instanceof TabHeader header && header.id.equals(this.id)) {
+                    tabbedPane.removeTabAt(i);
+                    break;
+                }
+            }
+        });
         add(closeButton, BorderLayout.EAST);
 
         JLabel tabTitle = new JLabel(title);
@@ -41,7 +49,7 @@ public class TabHeader extends JPanel {
     }
 
     public static void addTab(JComponent content, String title, JTabbedPane tabbedPane) {
-        TabHeader header = new TabHeader(title, tabbedPane, tabbedPane.getTabCount());
+        TabHeader header = new TabHeader(title, tabbedPane);
         tabbedPane.addTab(title, content);
         tabbedPane.setTabComponentAt(tabbedPane.getTabCount() - 1, header);
     }

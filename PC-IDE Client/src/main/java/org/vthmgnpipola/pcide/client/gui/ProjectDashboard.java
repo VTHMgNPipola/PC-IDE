@@ -5,6 +5,8 @@ import com.formdev.flatlaf.icons.FlatFileChooserNewFolderIcon;
 import com.formdev.flatlaf.icons.FlatFileViewDirectoryIcon;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ResourceBundle;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -17,7 +19,10 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.client.Configuration;
+import org.vthmgnpipola.pcide.client.lang.Project;
 import org.vthmgnpipola.pcide.client.lang.ServerPseudoCodeInterpreter;
 
 /**
@@ -25,6 +30,10 @@ import org.vthmgnpipola.pcide.client.lang.ServerPseudoCodeInterpreter;
  * selected or removed.
  */
 public class ProjectDashboard extends JFrame {
+    private Logger logger = LoggerFactory.getLogger(ProjectDashboard.class);
+
+    private DefaultListModel<Project> projectsModel;
+
     public ProjectDashboard() {
         init();
     }
@@ -39,10 +48,15 @@ public class ProjectDashboard extends JFrame {
         contentPane.setPreferredSize(new Dimension(768, 432));
 
         // First tab
-        DefaultListModel<String> projectsModel = new DefaultListModel<>();
-        projectsModel.addElement("Projeto 1");
-        projectsModel.addElement("Projeto 2");
-        JList<String> projects = new JList<>(projectsModel);
+        projectsModel = new DefaultListModel<>();
+        try {
+            updateProjectList();
+        } catch (IOException e) {
+            logger.error("Unable to update project list!");
+            logger.error(e.getMessage());
+            System.exit(-1);
+        }
+        JList<Project> projects = new JList<>(projectsModel);
         projects.setLayoutOrientation(JList.VERTICAL);
         projects.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
 
@@ -66,8 +80,11 @@ public class ProjectDashboard extends JFrame {
 
         JButton openProject = new JButton(language.getString("file.open"), new FlatFileViewDirectoryIcon());
         openProject.addActionListener(e -> {
-            ProjectEditor editor = new ProjectEditor();
-            editor.setVisible(true);
+            if (!projects.isSelectionEmpty()) {
+                logger.info("Opening project '" + projects.getSelectedValue() + "'...");
+                new ProjectEditor(projects.getSelectedValue()).setVisible(true);
+                dispose();
+            }
         });
         bottomPanel.add(openProject);
 
@@ -83,5 +100,16 @@ public class ProjectDashboard extends JFrame {
         setContentPane(contentPane);
         pack();
         setLocationRelativeTo(null);
+    }
+
+    private void updateProjectList() throws IOException {
+        projectsModel.clear();
+
+        Files.list(Configuration.getInstance().getProjectsPath()).forEachOrdered(p -> {
+            if (Files.isDirectory(p)) {
+                Project project = new Project(p, p.getFileName().toString());
+                projectsModel.addElement(project);
+            }
+        });
     }
 }

@@ -127,6 +127,10 @@ public class Configuration {
         return language;
     }
 
+    public Path getProjectsPath() {
+        return projectsPath;
+    }
+
     public PseudoCodeInterpreter getInterpreter() {
         return interpreter;
     }

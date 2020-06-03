@@ -36,10 +36,7 @@ public class Client {
         Configuration.getInstance().load();
 
         logger.info("Successful initialization! Opening Project Dashboard...");
-        SwingUtilities.invokeLater(() -> {
-            ProjectDashboard dashboard = new ProjectDashboard();
-            dashboard.setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> new ProjectDashboard().setVisible(true));
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if (Configuration.getInstance().getInterpreter() instanceof ServerPseudoCodeInterpreter interpreter) {

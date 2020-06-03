@@ -1,4 +1,10 @@
 package org.vthmgnpipola.pcide.client.lang;
 
-public record Project(String path, String name) {
+import java.nio.file.Path;
+
+public record Project(Path path, String name) {
+    @Override
+    public String toString() {
+        return name;
+    }
 }
