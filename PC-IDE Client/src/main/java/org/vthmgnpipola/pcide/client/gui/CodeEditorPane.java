@@ -43,7 +43,7 @@ public class CodeEditorPane extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
 
         FileSystemWatcher.getInstance().registerListener(path, e -> {
-            if (e.eventKind() == ENTRY_MODIFY) {
+            if (e.getEventKind() == ENTRY_MODIFY) {
                 try {
                     textArea.setText(Files.readString(path));
                 } catch (IOException ioException) {

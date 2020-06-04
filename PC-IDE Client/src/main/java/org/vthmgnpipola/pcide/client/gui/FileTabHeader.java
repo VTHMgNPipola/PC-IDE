@@ -44,10 +44,12 @@ public class FileTabHeader extends JPanel {
                 // This will iterate through all tabs until one of them has the same file path as this one. This may
                 // remove a tab you don't want to remove since I'm not using a unique identifier, like a UUID, but
                 // since I'm going to check if there's a tab open for a path already I'm going to leave it like that.
-                if (tabbedPane.getTabComponentAt(i) instanceof FileTabHeader header &&
-                        header.path.equals(this.path)) {
-                    tabbedPane.removeTabAt(i);
-                    break;
+                if (tabbedPane.getTabComponentAt(i) instanceof FileTabHeader) {
+                    FileTabHeader header = (FileTabHeader) tabbedPane.getTabComponentAt(i);
+                    if (header.path.equals(this.path)) {
+                        tabbedPane.removeTabAt(i);
+                        break;
+                    }
                 }
             }
         });
@@ -61,14 +63,18 @@ public class FileTabHeader extends JPanel {
     public static void addTab(JComponent content, Path path, String title, JTabbedPane tabbedPane) {
         for (int i = 0; i < tabbedPane.getTabCount(); i++) {
             // If there is a tab with the same path open, it will select this tab instead of opening another one.
-            if (tabbedPane.getTabComponentAt(i) instanceof FileTabHeader header && header.path.equals(path)) {
-                tabbedPane.setSelectedIndex(i);
-                return;
+            if (tabbedPane.getTabComponentAt(i) instanceof FileTabHeader) {
+                FileTabHeader header = (FileTabHeader) tabbedPane.getTabComponentAt(i);
+                if (header.path.equals(path)) {
+                    tabbedPane.setSelectedIndex(i);
+                    return;
+                }
             }
         }
 
         FileTabHeader header = new FileTabHeader(path, title, tabbedPane);
         tabbedPane.addTab(title, content);
         tabbedPane.setTabComponentAt(tabbedPane.getTabCount() - 1, header);
+        tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
     }
 }

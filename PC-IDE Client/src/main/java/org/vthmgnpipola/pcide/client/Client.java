@@ -24,13 +24,11 @@ public class Client {
 
     public static void main(String[] args) {
         // This is the most appropriate name here
-        String coolAsciiArt = """
-                    ____  ______     ________  ______
-                   / __ \\/ ____/    /  _/ __ \\/ ____/
-                  / /_/ / /  ______ / // / / / __/
-                 / ____/ /__/_____// // /_/ / /___
-                /_/    \\____/    /___/_____/_____/
-                """;
+        String coolAsciiArt = "____  ______     ________  ______\n" +
+                "   / __ \\/ ____/    /  _/ __ \\/ ____/\n" +
+                "  / /_/ / /  ______ / // / / / __/\n" +
+                " / ____/ /__/_____// // /_/ / /___\n" +
+                "/_/    \\____/    /___/_____/_____/";
         System.out.println(coolAsciiArt);
 
         logger.info("Starting up PC-IDE Client...");
@@ -41,8 +39,8 @@ public class Client {
         SwingUtilities.invokeLater(() -> new ProjectDashboard().setVisible(true));
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            if (Configuration.getInstance().getInterpreter() instanceof ServerPseudoCodeInterpreter interpreter) {
-                interpreter.close();
+            if (Configuration.getInstance().getInterpreter() instanceof ServerPseudoCodeInterpreter) {
+                ((ServerPseudoCodeInterpreter) Configuration.getInstance().getInterpreter()).close();
             }
 
             try {

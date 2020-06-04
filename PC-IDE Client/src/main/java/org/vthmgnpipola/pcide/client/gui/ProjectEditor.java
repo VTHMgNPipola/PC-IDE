@@ -51,14 +51,14 @@ public class ProjectEditor extends JFrame {
 
     private void init(Project project) {
         ResourceBundle language = Configuration.getInstance().getLanguage();
-        setTitle(language.getString("projectEditor.title"));
+        setTitle(language.getString("projectEditor.title") + " - " + project.getName());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setResizable(true);
 
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
-                FileSystemWatcher.getInstance().unregisterListener(project.path());
+                FileSystemWatcher.getInstance().unregisterListener(project.getPath());
                 new ProjectDashboard().setVisible(true);
             }
         });
@@ -68,7 +68,7 @@ public class ProjectEditor extends JFrame {
         Dimension dimension = new Dimension(1024, 576);
         contentPane.setPreferredSize(dimension);
 
-        projectParentDirectoryNode = new FileMutableTreeNode(new FileNode(project.path()));
+        projectParentDirectoryNode = new FileMutableTreeNode(new FileNode(project.getPath()));
         updateFileTree();
         JTree fileTree = new JTree(projectParentDirectoryNode);
         // TODO: If the file is already open switch to its tab instead of creating another one.
@@ -78,15 +78,17 @@ public class ProjectEditor extends JFrame {
                 if (e.getClickCount() >= 2) {
                     DefaultMutableTreeNode selectedNode =
                             (DefaultMutableTreeNode) fileTree.getLastSelectedPathComponent();
-                    if (selectedNode != null && selectedNode.getUserObject() instanceof FileNode fileNode &&
-                            Files.isRegularFile(fileNode.path)) {
+                    if (selectedNode != null && selectedNode.getUserObject() instanceof FileNode) {
+                        FileNode fileNode = (FileNode) selectedNode.getUserObject();
                         Path path = fileNode.path;
-                        try {
-                            FileTabHeader.addTab(new CodeEditorPane(path), path, path.getFileName().toString(),
-                                    editorTabs);
-                        } catch (IOException ioException) {
-                            logger.error("Error opening editor on file '" + path.toString() + "'!");
-                            logger.error(ioException.getMessage());
+                        if (Files.isRegularFile(path)) {
+                            try {
+                                FileTabHeader.addTab(new CodeEditorPane(path), path,
+                                        path.getFileName().toString(), editorTabs);
+                            } catch (IOException ioException) {
+                                logger.error("Error opening editor on file '" + path.toString() + "'!");
+                                logger.error(ioException.getMessage());
+                            }
                         }
                     }
                 }
@@ -114,9 +116,9 @@ public class ProjectEditor extends JFrame {
         pack();
         setLocationRelativeTo(null);
 
-        FileSystemWatcher.getInstance().setWorkingDirectory(project.path());
-        FileSystemWatcher.getInstance().registerListener(project.path(), e -> {
-            if (e.eventKind() == ENTRY_CREATE || e.eventKind() == ENTRY_DELETE) {
+        FileSystemWatcher.getInstance().setWorkingDirectory(project.getPath());
+        FileSystemWatcher.getInstance().registerListener(project.getPath(), e -> {
+            if (e.getEventKind() == ENTRY_CREATE || e.getEventKind() == ENTRY_DELETE) {
                 updateFileTree();
                 fileTree.updateUI();
             }
@@ -129,7 +131,8 @@ public class ProjectEditor extends JFrame {
     }
 
     private void walkDirectory(FileMutableTreeNode node) {
-        if (node.getUserObject() instanceof FileNode fileNode) {
+        if (node.getUserObject() instanceof FileNode) {
+            FileNode fileNode = (FileNode) node.getUserObject();
             try {
                 Files.list(fileNode.path).forEachOrdered(p -> {
                     FileMutableTreeNode newNode = new FileMutableTreeNode(new FileNode(p));
@@ -165,7 +168,13 @@ public class ProjectEditor extends JFrame {
      * A FileNode will store a {@link Path}, and its {@link #toString()} method will return the name of the
      * file/directory this Path points to.
      */
-    private static record FileNode(Path path) {
+    private static class FileNode {
+        private Path path;
+
+        public FileNode(Path path) {
+            this.path = path;
+        }
+
         @Override
         public String toString() {
             return path.getFileName().toString();

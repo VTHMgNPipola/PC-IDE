@@ -102,13 +102,26 @@ public class ProjectDashboard extends JFrame {
         setLocationRelativeTo(null);
     }
 
+    /**
+     * By calling this method, the list of projects is cleared and rebuilt.
+     * A project is only added to the list if it valid. To a project be considered valid, it must be a folder, and
+     * have a {@code project.json} file inside it, that contains at least the following parameters:
+     * <ul>
+     *     <li>{@code name}: The name of the project, that will be shown in the project list.</li>
+     * </ul>
+     */
     private void updateProjectList() throws IOException {
         projectsModel.clear();
 
         Files.list(Configuration.getInstance().getProjectsPath()).forEachOrdered(p -> {
             if (Files.isDirectory(p)) {
-                Project project = new Project(p, p.getFileName().toString());
-                projectsModel.addElement(project);
+                Project project = Project.createProject(p);
+                if (project != null) {
+                    logger.trace("Found valid project: '" + project.getName() + "'");
+                    projectsModel.addElement(project);
+                } else {
+                    logger.trace("Directory '" + p.getFileName().toString() + "' is not a valid project.");
+                }
             }
         });
     }
