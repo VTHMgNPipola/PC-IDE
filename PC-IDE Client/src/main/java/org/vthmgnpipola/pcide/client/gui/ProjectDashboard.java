@@ -5,6 +5,8 @@ import com.formdev.flatlaf.icons.FlatFileChooserNewFolderIcon;
 import com.formdev.flatlaf.icons.FlatFileViewDirectoryIcon;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ResourceBundle;
@@ -49,16 +51,18 @@ public class ProjectDashboard extends JFrame {
 
         // First tab
         projectsModel = new DefaultListModel<>();
-        try {
-            updateProjectList();
-        } catch (IOException e) {
-            logger.error("Unable to update project list!");
-            logger.error(e.getMessage());
-            System.exit(-1);
-        }
+        updateProjectList();
         JList<Project> projects = new JList<>(projectsModel);
         projects.setLayoutOrientation(JList.VERTICAL);
         projects.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
+        projects.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_F5) {
+                    updateProjectList();
+                }
+            }
+        });
 
         // Second tab
         if (Configuration.getInstance().getInterpreter() instanceof ServerPseudoCodeInterpreter) {
@@ -105,24 +109,31 @@ public class ProjectDashboard extends JFrame {
     /**
      * By calling this method, the list of projects is cleared and rebuilt.
      * A project is only added to the list if it valid. To a project be considered valid, it must be a folder, and
-     * have a {@code project.json} file inside it, that contains at least the following parameters:
+     * have a {@code project.json} file inside it, that contains the following parameters:
      * <ul>
-     *     <li>{@code name}: The name of the project, that will be shown in the project list.</li>
+     *     <li>{@code name}: Required. The name of the project, that will be shown in the project list.</li>
+     *     <li>{@code version}: Optional. The version of the project.</li>
      * </ul>
      */
-    private void updateProjectList() throws IOException {
+    private void updateProjectList() {
         projectsModel.clear();
 
-        Files.list(Configuration.getInstance().getProjectsPath()).forEachOrdered(p -> {
-            if (Files.isDirectory(p)) {
-                Project project = Project.createProject(p);
-                if (project != null) {
-                    logger.trace("Found valid project: '" + project.getName() + "'");
-                    projectsModel.addElement(project);
-                } else {
-                    logger.trace("Directory '" + p.getFileName().toString() + "' is not a valid project.");
+        try {
+            Files.list(Configuration.getInstance().getProjectsPath()).forEachOrdered(p -> {
+                if (Files.isDirectory(p)) {
+                    Project project = Project.createProject(p);
+                    if (project != null) {
+                        logger.trace("Found valid project: '" + project.getName() + "'");
+                        projectsModel.addElement(project);
+                    } else {
+                        logger.trace("Directory '" + p.getFileName().toString() + "' is not a valid project.");
+                    }
                 }
-            }
-        });
+            });
+            logger.debug("Project list updated.");
+        } catch (IOException e) {
+            logger.error("Unable to update project list!");
+            logger.error(e.getMessage());
+        }
     }
 }

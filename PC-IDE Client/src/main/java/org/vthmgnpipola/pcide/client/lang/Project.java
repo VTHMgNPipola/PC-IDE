@@ -13,6 +13,7 @@ public class Project {
 
     private Path path;
     private String name;
+    private String version;
 
     private Project(Path path, String name) {
         this.path = path;
@@ -38,7 +39,16 @@ public class Project {
                 return null;
             }
 
-            return new Project(path, projectName);
+            Project result = new Project(path, projectName);
+
+            String version = (String) configFile.get("version");
+            if (version != null) {
+                result.setVersion(version);
+            } else {
+                logger.trace("No project version provided.");
+            }
+
+            return result;
         }
 
         return null;
@@ -60,8 +70,20 @@ public class Project {
         this.name = name;
     }
 
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
     @Override
     public String toString() {
-        return name;
+        if (version != null) {
+            return name.trim() + " - " + version.trim();
+        } else {
+            return name.trim();
+        }
     }
 }
