@@ -71,7 +71,6 @@ public class ProjectEditor extends JFrame {
         projectParentDirectoryNode = new FileMutableTreeNode(new FileNode(project.getPath()));
         updateFileTree();
         JTree fileTree = new JTree(projectParentDirectoryNode);
-        // TODO: If the file is already open switch to its tab instead of creating another one.
         fileTree.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
