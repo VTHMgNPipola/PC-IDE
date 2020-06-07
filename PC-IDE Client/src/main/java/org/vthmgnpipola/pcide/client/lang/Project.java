@@ -37,6 +37,10 @@ public class Project {
                     logger.warn("No language provided for project '" + result.name + "'!");
                     result = null;
                 }
+
+                // The path of the project isn't in the json file, so I need to set it manually
+                assert result != null;
+                result.setPath(path);
             } catch (IOException e) {
                 logger.error("Error loading project from '" + path.toString() + "'!");
                 logger.error(e.getMessage());

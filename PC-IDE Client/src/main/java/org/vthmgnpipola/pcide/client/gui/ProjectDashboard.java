@@ -58,7 +58,6 @@ public class ProjectDashboard extends JFrame {
         projectsModel = new DefaultListModel<>();
         updateProjectList();
         JList<Project> projects = new JList<>(projectsModel);
-        // FIXME: When the custom cell renderer is used, list items aren't highlighted when clicked.
         projects.setCellRenderer(new ProjectListCellRenderer());
         projects.setLayoutOrientation(JList.VERTICAL);
         projects.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
