@@ -169,7 +169,7 @@ public class ProjectEditor extends JFrame {
      * file/directory this Path points to.
      */
     private static class FileNode {
-        private Path path;
+        private final Path path;
 
         public FileNode(Path path) {
             this.path = path;

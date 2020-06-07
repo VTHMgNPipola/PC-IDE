@@ -4,11 +4,13 @@ import com.formdev.flatlaf.icons.FlatFileChooserDetailsViewIcon;
 import com.formdev.flatlaf.icons.FlatFileChooserNewFolderIcon;
 import com.formdev.flatlaf.icons.FlatFileViewDirectoryIcon;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.ResourceBundle;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -17,13 +19,16 @@ import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.ListCellRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.client.Configuration;
+import org.vthmgnpipola.pcide.client.lang.Language;
 import org.vthmgnpipola.pcide.client.lang.Project;
 import org.vthmgnpipola.pcide.client.lang.ServerPseudoCodeInterpreter;
 
@@ -53,6 +58,8 @@ public class ProjectDashboard extends JFrame {
         projectsModel = new DefaultListModel<>();
         updateProjectList();
         JList<Project> projects = new JList<>(projectsModel);
+        // FIXME: When the custom cell renderer is used, list items aren't highlighted when clicked.
+        projects.setCellRenderer(new ProjectListCellRenderer());
         projects.setLayoutOrientation(JList.VERTICAL);
         projects.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
         projects.addKeyListener(new KeyAdapter() {
@@ -93,6 +100,7 @@ public class ProjectDashboard extends JFrame {
         bottomPanel.add(openProject);
 
         JButton newProject = new JButton(language.getString("file.new"), new FlatFileChooserNewFolderIcon());
+        newProject.addActionListener(e -> new CreateProjectDialog(this).setVisible(true));
         bottomPanel.add(newProject);
 
         JButton settings = new JButton(language.getString("file.settings"), new FlatFileChooserDetailsViewIcon());
@@ -115,7 +123,7 @@ public class ProjectDashboard extends JFrame {
      *     <li>{@code version}: Optional. The version of the project.</li>
      * </ul>
      */
-    private void updateProjectList() {
+    void updateProjectList() {
         projectsModel.clear();
 
         try {
@@ -134,6 +142,49 @@ public class ProjectDashboard extends JFrame {
         } catch (IOException e) {
             logger.error("Unable to update project list!");
             logger.error(e.getMessage());
+        }
+    }
+
+    private static class ProjectListCellRenderer implements ListCellRenderer<Project> {
+        private List<Language> availableLanguages;
+
+        public ProjectListCellRenderer() {
+            availableLanguages = Configuration.getInstance().getInterpreter().getAvailableLanguages();
+        }
+
+        @Override
+        public Component getListCellRendererComponent(JList<? extends Project> jList, Project project, int i, boolean b,
+                                                      boolean b1) {
+            // This is some horrendous code, I know, but at least it works
+            boolean languageAvailable = false;
+            for (Language language : availableLanguages) {
+                if (language.getName().equals(project.getLanguage().getName()) &&
+                        language.getVersion().equals(project.getLanguage().getVersion())) {
+                    languageAvailable = true;
+                    break;
+                }
+            }
+
+            String text;
+            if (!languageAvailable) {
+                if (project.getVersion() != null) {
+                    text = String.format("<html>%s - %s (<font color=\"red\">%s</font>)</html>", project.getName(),
+                            project.getVersion(), project.getLanguage().toString());
+                } else {
+                    text = String.format("<html>%s (<font color=\"red\">%s</font>)</html>", project.getName(),
+                            project.getLanguage().toString());
+                }
+            } else {
+                if (project.getVersion() != null) {
+                    text = String.format("%s - %s (%s)", project.getName(),
+                            project.getVersion(), project.getLanguage().toString());
+                } else {
+                    text = String.format("%s (%s)", project.getName(),
+                            project.getLanguage().toString());
+                }
+            }
+
+            return new JLabel(text);
         }
     }
 }

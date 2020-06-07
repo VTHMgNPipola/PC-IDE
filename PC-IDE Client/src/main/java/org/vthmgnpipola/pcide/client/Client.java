@@ -24,7 +24,8 @@ public class Client {
 
     public static void main(String[] args) {
         // This is the most appropriate name here
-        String coolAsciiArt = "____  ______     ________  ______\n" +
+        String coolAsciiArt =
+                "    ____  ______     ________  ______\n" +
                 "   / __ \\/ ____/    /  _/ __ \\/ ____/\n" +
                 "  / /_/ / /  ______ / // / / / __/\n" +
                 " / ____/ /__/_____// // /_/ / /___\n" +
@@ -39,14 +40,14 @@ public class Client {
         SwingUtilities.invokeLater(() -> new ProjectDashboard().setVisible(true));
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            if (Configuration.getInstance().getInterpreter() instanceof ServerPseudoCodeInterpreter) {
-                ((ServerPseudoCodeInterpreter) Configuration.getInstance().getInterpreter()).close();
-            }
-
             try {
+                if (Configuration.getInstance().getInterpreter() instanceof ServerPseudoCodeInterpreter) {
+                    ((ServerPseudoCodeInterpreter) Configuration.getInstance().getInterpreter()).close();
+                }
+
                 FileSystemWatcher.getInstance().close();
             } catch (IOException e) {
-                logger.error("Unable to close FileSystemWatcher!");
+                logger.error("Unable to close client!");
                 logger.error(e.getMessage());
             }
         }));

@@ -1,51 +1,45 @@
 package org.vthmgnpipola.pcide.client.lang;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Project {
     private static final Logger logger = LoggerFactory.getLogger(Project.class);
 
+    @JsonIgnore
     private Path path;
+
     private String name;
+
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String version;
 
-    private Project(Path path, String name) {
-        this.path = path;
-        this.name = name;
-    }
+    private Language language;
 
     public static Project createProject(Path path) {
         Path projectFile = path.resolve("project.json");
         if (Files.isRegularFile(projectFile)) {
             ObjectMapper mapper = new ObjectMapper();
-            Map<String, ?> configFile;
+            Project result = null;
             try {
-                configFile = mapper.readValue(projectFile.toFile(), Map.class);
+                result = mapper.readValue(projectFile.toFile(), Project.class);
+
+                if (result.name == null) {
+                    logger.warn("No name provided for project on '" + path.toString() + "'!");
+                    result = null;
+                } else if (result.language == null) {
+                    logger.warn("No language provided for project '" + result.name + "'!");
+                    result = null;
+                }
             } catch (IOException e) {
-                logger.error("Unable to read project configuration file!");
+                logger.error("Error loading project from '" + path.toString() + "'!");
                 logger.error(e.getMessage());
-                return null;
-            }
-
-            String projectName = (String) configFile.get("name");
-            if (projectName == null) {
-                logger.warn("Project has no name!");
-                return null;
-            }
-
-            Project result = new Project(path, projectName);
-
-            String version = (String) configFile.get("version");
-            if (version != null) {
-                result.setVersion(version);
-            } else {
-                logger.trace("No project version provided.");
             }
 
             return result;
@@ -78,12 +72,20 @@ public class Project {
         this.version = version;
     }
 
+    public Language getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(Language language) {
+        this.language = language;
+    }
+
     @Override
     public String toString() {
         if (version != null) {
-            return name.trim() + " - " + version.trim();
+            return name.trim() + " - " + version.trim() + " (" + language.toString() + ")";
         } else {
-            return name.trim();
+            return name.trim() + " (" + language.toString() + ")";
         }
     }
 }

@@ -2,8 +2,6 @@ package org.vthmgnpipola.pcide.client;
 
 import com.formdev.flatlaf.FlatIntelliJLaf;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
@@ -103,17 +101,8 @@ public class Configuration {
     }
 
     private ServerPseudoCodeInterpreter createServerPseudoCodeInterpreter() {
-        String addressStr = configuration.getProperty("server.address");
+        String address = configuration.getProperty("server.address");
         String portStr = configuration.getProperty("server.port");
-
-        InetAddress address = null;
-        try {
-            address = InetAddress.getByName(addressStr);
-        } catch (UnknownHostException e) {
-            logger.error("Unable to find server at address '" + addressStr + "'!");
-            logger.error(e.getMessage());
-            System.exit(-1);
-        }
 
         return new ServerPseudoCodeInterpreter(address, Integer.parseInt(portStr));
     }
