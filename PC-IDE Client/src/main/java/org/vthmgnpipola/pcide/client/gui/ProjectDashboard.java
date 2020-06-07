@@ -15,6 +15,7 @@ import java.util.ResourceBundle;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
@@ -24,7 +25,6 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.ListCellRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.client.Configuration;
@@ -144,7 +144,7 @@ public class ProjectDashboard extends JFrame {
         }
     }
 
-    private static class ProjectListCellRenderer implements ListCellRenderer<Project> {
+    private static class ProjectListCellRenderer extends DefaultListCellRenderer {
         private List<Language> availableLanguages;
 
         public ProjectListCellRenderer() {
@@ -152,9 +152,13 @@ public class ProjectDashboard extends JFrame {
         }
 
         @Override
-        public Component getListCellRendererComponent(JList<? extends Project> jList, Project project, int i, boolean b,
+        public Component getListCellRendererComponent(JList<?> jList, Object object, int i, boolean b,
                                                       boolean b1) {
+            JLabel component = (JLabel) super.getListCellRendererComponent(jList, object, i, b, b1);
+
             // This is some horrendous code, I know, but at least it works
+            assert object instanceof Project;
+            Project project = (Project) object;
             boolean languageAvailable = false;
             for (Language language : availableLanguages) {
                 if (language.getName().equals(project.getLanguage().getName()) &&
@@ -183,7 +187,8 @@ public class ProjectDashboard extends JFrame {
                 }
             }
 
-            return new JLabel(text);
+            component.setText(text);
+            return component;
         }
     }
 }
