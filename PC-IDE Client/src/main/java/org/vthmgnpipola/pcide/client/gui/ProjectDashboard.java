@@ -8,6 +8,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
@@ -40,6 +42,7 @@ public class ProjectDashboard extends JFrame {
     private Logger logger = LoggerFactory.getLogger(ProjectDashboard.class);
 
     private DefaultListModel<Project> projectsModel;
+    private JList<Project> projects;
 
     public ProjectDashboard() {
         init();
@@ -57,7 +60,7 @@ public class ProjectDashboard extends JFrame {
         // First tab
         projectsModel = new DefaultListModel<>();
         updateProjectList();
-        JList<Project> projects = new JList<>(projectsModel);
+        projects = new JList<>(projectsModel);
         projects.setCellRenderer(new ProjectListCellRenderer());
         projects.setLayoutOrientation(JList.VERTICAL);
         projects.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
@@ -66,6 +69,14 @@ public class ProjectDashboard extends JFrame {
             public void keyReleased(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_F5) {
                     updateProjectList();
+                }
+            }
+        });
+        projects.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() >= 2 && e.getButton() == MouseEvent.BUTTON1) {
+                    openSelectedProject();
                 }
             }
         });
@@ -89,13 +100,7 @@ public class ProjectDashboard extends JFrame {
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         JButton openProject = new JButton(language.getString("file.open"), new FlatFileViewDirectoryIcon());
-        openProject.addActionListener(e -> {
-            if (!projects.isSelectionEmpty()) {
-                logger.info("Opening project '" + projects.getSelectedValue() + "'...");
-                new ProjectEditor(projects.getSelectedValue()).setVisible(true);
-                dispose();
-            }
-        });
+        openProject.addActionListener(e -> openSelectedProject());
         bottomPanel.add(openProject);
 
         JButton newProject = new JButton(language.getString("file.new"), new FlatFileChooserNewFolderIcon());
@@ -111,6 +116,14 @@ public class ProjectDashboard extends JFrame {
         setContentPane(contentPane);
         pack();
         setLocationRelativeTo(null);
+    }
+
+    private void openSelectedProject() {
+        if (!projects.isSelectionEmpty()) {
+            logger.info("Opening project '" + projects.getSelectedValue() + "'...");
+            new ProjectEditor(projects.getSelectedValue()).setVisible(true);
+            dispose();
+        }
     }
 
     /**

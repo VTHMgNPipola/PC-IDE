@@ -74,7 +74,7 @@ public class ProjectEditor extends JFrame {
         fileTree.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() >= 2) {
+                if (e.getClickCount() >= 2 && e.getButton() == MouseEvent.BUTTON1) {
                     DefaultMutableTreeNode selectedNode =
                             (DefaultMutableTreeNode) fileTree.getLastSelectedPathComponent();
                     if (selectedNode != null && selectedNode.getUserObject() instanceof FileNode) {
