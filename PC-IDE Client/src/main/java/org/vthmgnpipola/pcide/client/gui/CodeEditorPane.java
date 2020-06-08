@@ -1,6 +1,8 @@
 package org.vthmgnpipola.pcide.client.gui;
 
 import java.awt.BorderLayout;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,6 +43,21 @@ public class CodeEditorPane extends JPanel {
         scrollPane.setLineNumbersEnabled(true);
         scrollPane.setFoldIndicatorEnabled(true);
         add(scrollPane, BorderLayout.CENTER);
+
+        textArea.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_S && e.isControlDown()) {
+                    try {
+                        Files.write(path, textArea.getText().getBytes());
+                        logger.info("Saved file '" + path.toString() + "'.");
+                    } catch (IOException ioException) {
+                        logger.error("Unable to save file '" + path.toString() + "'!");
+                        logger.error(ioException.getMessage());
+                    }
+                }
+            }
+        });
 
         FileSystemWatcher.getInstance().registerListener(path, e -> {
             if (e.getEventKind() == ENTRY_MODIFY) {
