@@ -30,9 +30,9 @@ import javax.swing.JTabbedPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.client.Configuration;
-import org.vthmgnpipola.pcide.client.lang.Language;
 import org.vthmgnpipola.pcide.client.lang.Project;
-import org.vthmgnpipola.pcide.client.lang.ServerPseudoCodeInterpreter;
+import org.vthmgnpipola.pcide.client.lang.RabbitMQPseudoCodeInterpreter;
+import org.vthmgnpipola.pcide.commons.Language;
 
 /**
  * The project dashboard is where projects (or tasks, if the client is connected to a server) are shown, and can be
@@ -82,7 +82,8 @@ public class ProjectDashboard extends JFrame {
         });
 
         // Second tab
-        if (Configuration.getInstance().getInterpreter() instanceof ServerPseudoCodeInterpreter) {
+        // TODO: Check if server "has tasks" instead of this
+        if (Configuration.getInstance().getInterpreter() instanceof RabbitMQPseudoCodeInterpreter) {
             DefaultListModel<String> tasksModel = new DefaultListModel<>();
             JList<String> tasks = new JList<>(tasksModel);
 

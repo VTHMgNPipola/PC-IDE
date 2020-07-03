@@ -5,7 +5,6 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import java.io.ByteArrayInputStream;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.List;
@@ -15,24 +14,19 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vthmgnpipola.pcide.commons.Language;
 
-public class ServerPseudoCodeInterpreter implements PseudoCodeInterpreter, Closeable {
-    private static final Logger logger = LoggerFactory.getLogger(ServerPseudoCodeInterpreter.class);
+public class RabbitMQPseudoCodeInterpreter implements PseudoCodeInterpreter {
+    private static final Logger logger = LoggerFactory.getLogger(RabbitMQPseudoCodeInterpreter.class);
 
     private static final String QUEUE_NAME = "pcide";
-
-    private String serverAddress;
-    private int port;
 
     private Connection connection;
     private Channel channel;
     private String callbackQueueName;
 
     // TODO: Implement security between client and server
-    public ServerPseudoCodeInterpreter(String serverAddress, int port) {
-        this.serverAddress = serverAddress;
-        this.port = port;
-
+    public RabbitMQPseudoCodeInterpreter(String serverAddress, int port) {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(serverAddress);
         factory.setPort(port);

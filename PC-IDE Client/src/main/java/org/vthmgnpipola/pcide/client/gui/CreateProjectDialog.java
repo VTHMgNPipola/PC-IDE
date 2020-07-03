@@ -18,8 +18,8 @@ import javax.swing.JTextField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.client.Configuration;
-import org.vthmgnpipola.pcide.client.lang.Language;
 import org.vthmgnpipola.pcide.client.lang.Project;
+import org.vthmgnpipola.pcide.commons.Language;
 
 public class CreateProjectDialog extends JDialog {
     private static final Logger logger = LoggerFactory.getLogger(CreateProjectDialog.class);

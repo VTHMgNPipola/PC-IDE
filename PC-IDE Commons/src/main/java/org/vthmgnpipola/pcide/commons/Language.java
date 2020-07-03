@@ -1,4 +1,4 @@
-package org.vthmgnpipola.pcide.client.lang;
+package org.vthmgnpipola.pcide.commons;
 
 import java.io.Serializable;
 
@@ -7,6 +7,8 @@ import java.io.Serializable;
  * client.
  */
 public class Language implements Serializable {
+    private static final long serialVersionUID = -3925379083724696339L;
+
     private String name;
     private String version;
 

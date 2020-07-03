@@ -11,9 +11,9 @@ import java.util.ResourceBundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.client.lang.FileSystemWatcher;
-import org.vthmgnpipola.pcide.client.lang.LocalPseudoCodeInterpreter;
 import org.vthmgnpipola.pcide.client.lang.PseudoCodeInterpreter;
-import org.vthmgnpipola.pcide.client.lang.ServerPseudoCodeInterpreter;
+import org.vthmgnpipola.pcide.client.lang.RabbitMQPseudoCodeInterpreter;
+import org.vthmgnpipola.pcide.client.lang.SocketPseudoCodeInterpreter;
 
 /**
  * This class holds the settings of this client. when the {@link #load()} method is called, the {@code client
@@ -42,7 +42,7 @@ public class Configuration {
      * Loads the {@code client.properties} file and setups some areas of the application, such as, for example, whether the
      * code will be interpreted in a server or locally.
      */
-    public void load() {
+    public void load() throws IOException {
         logger.debug("Processing client.properties...");
         configuration = new Properties();
         try {
@@ -88,28 +88,22 @@ public class Configuration {
         }
 
         logger.debug("Creating PseudoCodeInterpreter...");
-        if (Boolean.parseBoolean(configuration.getProperty("server.enabled", "false"))) {
-            logger.debug("Server enabled, creating ServerPseudoCodeInterpreter...");
-            interpreter = createServerPseudoCodeInterpreter();
+        String serverMode = configuration.getProperty("server.mode", "socket");
+        String address = configuration.getProperty("server.address", "127.0.0.1");
+        int port = Integer.parseInt(configuration.getProperty("server.port", "5487"));
+        if (serverMode.equalsIgnoreCase("socket")) {
+            logger.debug("Socket mode selected.");
+            interpreter = new SocketPseudoCodeInterpreter(address, port);
+        } else if (serverMode.equalsIgnoreCase("rabbitmq")) {
+            logger.debug("RabbitMQ mode selected.");
+            interpreter = new RabbitMQPseudoCodeInterpreter(address, port);
         } else {
-            logger.debug("Server disabled, creating LocalPseudoCodeInterpreter...");
-            interpreter = createLocalPseudoCodeInterpreter();
+            logger.error("Invalid server mode selected!");
+            System.exit(-1);
         }
 
         logger.debug("Starting FileSystemWatcher...");
         FileSystemWatcher.getInstance().start();
-    }
-
-    private ServerPseudoCodeInterpreter createServerPseudoCodeInterpreter() {
-        String address = configuration.getProperty("server.address");
-        String portStr = configuration.getProperty("server.port");
-
-        return new ServerPseudoCodeInterpreter(address, Integer.parseInt(portStr));
-    }
-
-    private LocalPseudoCodeInterpreter createLocalPseudoCodeInterpreter() {
-        // TODO: Download interpreter from GitHub releases to always use the most up-to-date interpreter
-        return new LocalPseudoCodeInterpreter();
     }
 
     public Properties getConfiguration() {

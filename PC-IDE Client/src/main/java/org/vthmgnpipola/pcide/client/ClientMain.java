@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.client.gui.ProjectDashboard;
 import org.vthmgnpipola.pcide.client.lang.FileSystemWatcher;
-import org.vthmgnpipola.pcide.client.lang.ServerPseudoCodeInterpreter;
 
 /**
  * This is the client side of PC-IDE (PseudoCode Integrated Development Environment).
@@ -19,10 +18,10 @@ import org.vthmgnpipola.pcide.client.lang.ServerPseudoCodeInterpreter;
  *     <li>When closed, finishes connection with server, if there is any, and then exits.</li>
  * </ol>
  */
-public class Client {
-    private static final Logger logger = LoggerFactory.getLogger(Client.class);
+public class ClientMain {
+    private static final Logger logger = LoggerFactory.getLogger(ClientMain.class);
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // This is the most appropriate name here
         String coolAsciiArt =
                 "    ____  ______     ________  ______\n" +
@@ -37,13 +36,16 @@ public class Client {
         Configuration.getInstance().load();
 
         logger.info("Successful initialization! Opening Project Dashboard...");
-        SwingUtilities.invokeLater(() -> new ProjectDashboard().setVisible(true));
+        SwingUtilities.invokeLater(() -> {
+            logger.info("Starting GUI...");
+            ProjectDashboard dashboard = new ProjectDashboard();
+            logger.info("Making dashboard visible...");
+            dashboard.setVisible(true);
+        });
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
-                if (Configuration.getInstance().getInterpreter() instanceof ServerPseudoCodeInterpreter) {
-                    ((ServerPseudoCodeInterpreter) Configuration.getInstance().getInterpreter()).close();
-                }
+                Configuration.getInstance().getInterpreter().close();
 
                 FileSystemWatcher.getInstance().close();
             } catch (IOException e) {

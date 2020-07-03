@@ -1,24 +1,25 @@
 package org.vthmgnpipola.pcide.interpreter.command;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.Flow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vthmgnpipola.pcide.commons.ClientRequest;
 
 /**
  * This is a socketed {@link RequestReceiver}. This request receiver receives client request from a socket that it is
  * listening to. This request receiver should only be used when RabbitMQ isn't installed in the machine the
  * interpreter is running, such as when running the interpreter in the same machine as the client.
  */
-public class SocketRequestReceiver implements RequestReceiver, Closeable {
+public class SocketRequestReceiver implements RequestReceiver {
     private static final Logger logger = LoggerFactory.getLogger(SocketRequestReceiver.class);
 
     private Flow.Subscriber<? super ClientRequest> subscriber;
-    private ServerSocket serverSocket;
+    private final ServerSocket serverSocket;
 
     public SocketRequestReceiver(int port) throws IOException {
         serverSocket = new ServerSocket(port);
@@ -27,25 +28,48 @@ public class SocketRequestReceiver implements RequestReceiver, Closeable {
     @Override
     public void run() {
         try {
-            Socket connection = serverSocket.accept();
+            while (!serverSocket.isClosed()) {
+                Socket connection = serverSocket.accept();
+                logger.info(String.format("Client %s connected!", connection.getInetAddress().getHostName()));
 
-            new Thread(() -> {
-                try {
-                    ObjectInputStream ois = new ObjectInputStream(connection.getInputStream());
-                    while (connection.isConnected()) {
-                        String str = (String) getObjectOfType(ois, String.class);
-                        Object obj = ois.readObject();
-                        ClientRequest request = new ClientRequest();
-                        request.setCaller(connection.getInetAddress().getHostName());
-                        request.setRequest(str);
-                        request.setObj(obj);
-                        subscriber.onNext(request);
+                new Thread(() -> {
+                    ObjectInputStream ois;
+                    ObjectOutputStream oos;
+                    try {
+                        oos = new ObjectOutputStream(connection.getOutputStream());
+                        oos.flush();
+                        ois = new ObjectInputStream(connection.getInputStream());
+
+                        int errors = 0;
+                        int maxErrors = 5; // The server will stop when more than 5 errors are thrown in the same second
+                        long lastErrorTime = 0;
+                        while (connection.isConnected() && errors <= maxErrors) {
+                            // Having the try-catch inside the loop prevents the server from stopping to receive client
+                            // requests because of an error
+                            try {
+                                String str = (String) ois.readObject();
+                                Object obj = ois.readObject();
+                                ClientRequest request = new SocketClientRequest(str, obj, oos);
+                                subscriber.onNext(request);
+                            } catch (Exception e) {
+                                long currentErrorTime = System.currentTimeMillis();
+                                if (currentErrorTime - lastErrorTime > 1000) {
+                                    errors = 0;
+                                }
+                                lastErrorTime = currentErrorTime;
+                                errors++;
+                                logger.error("Error receiving requests from client at '" + connection.getInetAddress().getHostName() + "'!");
+                                logger.error(e.getMessage());
+                            }
+                        }
+                        logger.info(String.format("Client at %s disconnected.",
+                                connection.getInetAddress().getHostName()));
+                    } catch (IOException e) {
+                        logger.error(String.format("Error creating input stream for connected client at %s!",
+                                connection.getInetAddress().getHostName()));
                     }
-                } catch (Exception e) {
-                    logger.error("Error receiving requests from client at '" + connection.getInetAddress().getHostName() + "'!");
-                    logger.error(e.getMessage());
-                }
-            }).start();
+                }).start();
+            }
         } catch (IOException e) {
             logger.error("Error receiving requests from clients!");
             logger.error(e.getMessage());
@@ -63,11 +87,23 @@ public class SocketRequestReceiver implements RequestReceiver, Closeable {
         this.subscriber = subscriber;
     }
 
-    private static Object getObjectOfType(ObjectInputStream ois, Class<?> type) throws IOException, ClassNotFoundException {
-        Object obj = ois.readObject();
-        if (!obj.getClass().equals(type)) {
-            throw new RuntimeException("Received object is not of type '" + type.getName() + "'!");
+    private static class SocketClientRequest extends ClientRequest {
+        private static final long serialVersionUID = 8143244881956062767L;
+        private final ObjectOutputStream oos;
+
+        public SocketClientRequest(String request, Object obj, ObjectOutputStream oos) {
+            super(request, obj);
+            this.oos = oos;
         }
-        return obj;
+
+        @Override
+        public void sendResponse(Object object) {
+            try {
+                oos.writeObject(object);
+            } catch (IOException e) {
+                logger.error("Error sending response to client!");
+                logger.error(e.getMessage());
+            }
+        }
     }
 }

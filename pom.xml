@@ -11,6 +11,7 @@
     <modules>
         <module>PC-IDE Client</module>
         <module>PC-IDE Interpreter</module>
+        <module>PC-IDE Commons</module>
     </modules>
 
     <build>
