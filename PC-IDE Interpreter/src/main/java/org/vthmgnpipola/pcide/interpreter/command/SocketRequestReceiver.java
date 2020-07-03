@@ -50,6 +50,10 @@ public class SocketRequestReceiver implements RequestReceiver {
                                 String str = (String) ois.readObject();
                                 Object obj = ois.readObject();
                                 ClientRequest request = new SocketClientRequest(str, obj, oos);
+                                if (request.getRequest().equals("disconnect")) {
+                                    logger.info("Client requested to disconnect!");
+                                    break;
+                                }
                                 subscriber.onNext(request);
                             } catch (Exception e) {
                                 long currentErrorTime = System.currentTimeMillis();

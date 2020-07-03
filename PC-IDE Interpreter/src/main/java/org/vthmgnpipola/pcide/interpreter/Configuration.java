@@ -13,6 +13,8 @@ public class Configuration {
     private static final Logger logger = LoggerFactory.getLogger(Configuration.class);
     private static final Configuration instance = new Configuration();
 
+    private Properties configuration;
+
     private RequestReceiver receiver;
 
     private Configuration() {
@@ -26,7 +28,7 @@ public class Configuration {
         logger.debug("Configuring interpreter...");
 
         logger.debug("Loading properties...");
-        Properties configuration = new Properties();
+        configuration = new Properties();
         try {
             configuration.load(Objects.requireNonNull(Configuration.class.getClassLoader()
                     .getResourceAsStream("interpreter.properties")));
@@ -47,6 +49,10 @@ public class Configuration {
             receiver = new SocketRequestReceiver(port);
         }
         receiver.subscribe(executor);
+    }
+
+    public Properties getConfiguration() {
+        return configuration;
     }
 
     public RequestReceiver getReceiver() {

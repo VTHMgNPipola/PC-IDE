@@ -91,6 +91,11 @@ public class RabbitMQPseudoCodeInterpreter implements PseudoCodeInterpreter {
     }
 
     @Override
+    public boolean isTasksEnabled() {
+        return false;
+    }
+
+    @Override
     public void close() throws IOException {
         connection.close();
         try {

@@ -13,4 +13,6 @@ public interface PseudoCodeInterpreter extends Closeable {
     int interpret(String code);
 
     List<Language> getAvailableLanguages();
+
+    boolean isTasksEnabled();
 }

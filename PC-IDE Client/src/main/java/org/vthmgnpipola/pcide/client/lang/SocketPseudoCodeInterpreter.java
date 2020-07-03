@@ -33,6 +33,11 @@ public class SocketPseudoCodeInterpreter implements PseudoCodeInterpreter {
         return (List<Language>) callServer("list_languages", null, List.class);
     }
 
+    @Override
+    public boolean isTasksEnabled() {
+        return (boolean) callServer("has_tasks", null, Boolean.class);
+    }
+
     /**
      * To call a server connected via sockets, the client will send a
      * {@link org.vthmgnpipola.pcide.commons.ClientRequest}. The server will receive both the request and object,
@@ -67,6 +72,15 @@ public class SocketPseudoCodeInterpreter implements PseudoCodeInterpreter {
 
     @Override
     public void close() throws IOException {
+        // Sends the signal to close the connection to the server
+        try {
+            oos.writeObject("disconnect");
+            oos.writeObject(null);
+        } catch(IOException e) {
+            logger.error("Error trying to close connection with server");
+            logger.error(e.getMessage());
+        }
+
         ois.close();
         oos.close();
         connection.close();

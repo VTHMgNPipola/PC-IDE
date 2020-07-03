@@ -31,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.client.Configuration;
 import org.vthmgnpipola.pcide.client.lang.Project;
-import org.vthmgnpipola.pcide.client.lang.RabbitMQPseudoCodeInterpreter;
 import org.vthmgnpipola.pcide.commons.Language;
 
 /**
@@ -82,8 +81,7 @@ public class ProjectDashboard extends JFrame {
         });
 
         // Second tab
-        // TODO: Check if server "has tasks" instead of this
-        if (Configuration.getInstance().getInterpreter() instanceof RabbitMQPseudoCodeInterpreter) {
+        if (Configuration.getInstance().getInterpreter().isTasksEnabled()) {
             DefaultListModel<String> tasksModel = new DefaultListModel<>();
             JList<String> tasks = new JList<>(tasksModel);
 
@@ -159,7 +157,7 @@ public class ProjectDashboard extends JFrame {
     }
 
     private static class ProjectListCellRenderer extends DefaultListCellRenderer {
-        private List<Language> availableLanguages;
+        private final List<Language> availableLanguages;
 
         public ProjectListCellRenderer() {
             availableLanguages = Configuration.getInstance().getInterpreter().getAvailableLanguages();
