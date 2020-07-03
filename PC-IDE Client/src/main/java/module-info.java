@@ -7,4 +7,5 @@ module org.vthmgnpipola.pcide.client {
     requires com.formdev.flatlaf;
     requires com.fasterxml.jackson.databind;
     requires rsyntaxtextarea;
+    requires rstaui;
 }

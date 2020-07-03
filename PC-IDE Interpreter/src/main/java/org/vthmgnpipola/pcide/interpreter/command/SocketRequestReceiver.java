@@ -29,6 +29,7 @@ public class SocketRequestReceiver implements RequestReceiver {
     public void run() {
         try {
             while (!serverSocket.isClosed()) {
+                logger.debug("Waiting for connection...");
                 Socket connection = serverSocket.accept();
                 logger.info(String.format("Client %s connected!", connection.getInetAddress().getHostName()));
 

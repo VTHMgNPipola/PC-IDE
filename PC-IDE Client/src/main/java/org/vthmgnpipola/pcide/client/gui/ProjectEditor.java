@@ -153,6 +153,8 @@ public class ProjectEditor extends JFrame {
      * return true to {@link #isLeaf()} if the file it is associated with is a regular file.
      */
     private static class FileMutableTreeNode extends DefaultMutableTreeNode {
+        private static final long serialVersionUID = 7856442366118343457L;
+
         public FileMutableTreeNode(FileNode fileNode) {
             super(fileNode);
         }

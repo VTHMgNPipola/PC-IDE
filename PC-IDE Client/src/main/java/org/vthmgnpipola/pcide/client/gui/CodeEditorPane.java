@@ -38,6 +38,7 @@ public class CodeEditorPane extends JPanel {
         textArea.setCloseMarkupTags(true);
         textArea.setCodeFoldingEnabled(true);
         textArea.setMarkOccurrences(true);
+        setSyntax(textArea, path);
 
         RTextScrollPane scrollPane = new RTextScrollPane(textArea);
         scrollPane.setLineNumbersEnabled(true);
@@ -69,5 +70,19 @@ public class CodeEditorPane extends JPanel {
                 }
             }
         });
+    }
+
+    private void setSyntax(RSyntaxTextArea textArea, Path path) {
+        String filename = path.getFileName().toString();
+        String extension = filename.substring(filename.lastIndexOf('.') + 1);
+        switch (extension) {
+            case "properties" -> textArea.setSyntaxEditingStyle(RSyntaxTextArea.SYNTAX_STYLE_PROPERTIES_FILE);
+            case "json" -> textArea.setSyntaxEditingStyle(RSyntaxTextArea.SYNTAX_STYLE_JSON);
+            case "xml" -> textArea.setSyntaxEditingStyle(RSyntaxTextArea.SYNTAX_STYLE_XML);
+            case "yaml", "yml" -> textArea.setSyntaxEditingStyle(RSyntaxTextArea.SYNTAX_STYLE_YAML);
+            case "sh" -> textArea.setSyntaxEditingStyle(RSyntaxTextArea.SYNTAX_STYLE_UNIX_SHELL);
+            case "bat" -> textArea.setSyntaxEditingStyle(RSyntaxTextArea.SYNTAX_STYLE_WINDOWS_BATCH);
+            default -> textArea.setSyntaxEditingStyle(RSyntaxTextArea.SYNTAX_STYLE_NONE);
+        }
     }
 }
