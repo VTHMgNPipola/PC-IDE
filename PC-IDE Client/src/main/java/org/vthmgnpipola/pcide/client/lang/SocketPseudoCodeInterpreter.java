@@ -25,7 +25,8 @@ public class SocketPseudoCodeInterpreter implements PseudoCodeInterpreter {
 
     @Override
     public int interpret(String code) {
-        return 0;
+        // TODO: Implement this in the server
+        return (int) callServer("interpret", code, Integer.class);
     }
 
     @Override
