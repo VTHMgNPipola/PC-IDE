@@ -9,6 +9,7 @@ import java.util.concurrent.Flow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.commons.ClientRequest;
+import org.vthmgnpipola.pcide.commons.StackTracePrinter;
 
 /**
  * This is a socketed {@link RequestReceiver}. This request receiver receives client request from a socket that it is
@@ -64,7 +65,7 @@ public class SocketRequestReceiver implements RequestReceiver {
                                 lastErrorTime = currentErrorTime;
                                 errors++;
                                 logger.error("Error receiving requests from client at '" + connection.getInetAddress().getHostName() + "'!");
-                                logger.error(e.getMessage());
+                                logger.error(StackTracePrinter.getStackTraceAsString(e));
                             }
                         }
                         logger.info(String.format("Client at %s disconnected.",
@@ -77,7 +78,7 @@ public class SocketRequestReceiver implements RequestReceiver {
             }
         } catch (IOException e) {
             logger.error("Error receiving requests from clients!");
-            logger.error(e.getMessage());
+            logger.error(StackTracePrinter.getStackTraceAsString(e));
         }
     }
 
@@ -107,7 +108,7 @@ public class SocketRequestReceiver implements RequestReceiver {
                 oos.writeObject(object);
             } catch (IOException e) {
                 logger.error("Error sending response to client!");
-                logger.error(e.getMessage());
+                logger.error(StackTracePrinter.getStackTraceAsString(e));
             }
         }
     }

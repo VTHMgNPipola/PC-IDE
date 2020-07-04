@@ -8,6 +8,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.commons.Language;
+import org.vthmgnpipola.pcide.commons.StackTracePrinter;
 
 public class SocketPseudoCodeInterpreter implements PseudoCodeInterpreter {
     private static final Logger logger = LoggerFactory.getLogger(SocketPseudoCodeInterpreter.class);
@@ -66,7 +67,7 @@ public class SocketPseudoCodeInterpreter implements PseudoCodeInterpreter {
             return response;
         } catch (IOException | ClassNotFoundException e) {
             logger.error(String.format("Error sending/receiving request '%s' from server!", str));
-            logger.error(e.getMessage());
+            logger.error(StackTracePrinter.getStackTraceAsString(e));
             return null;
         }
     }
@@ -79,7 +80,7 @@ public class SocketPseudoCodeInterpreter implements PseudoCodeInterpreter {
             oos.writeObject(null);
         } catch(IOException e) {
             logger.error("Error trying to close connection with server");
-            logger.error(e.getMessage());
+            logger.error(StackTracePrinter.getStackTraceAsString(e));
         }
 
         ois.close();

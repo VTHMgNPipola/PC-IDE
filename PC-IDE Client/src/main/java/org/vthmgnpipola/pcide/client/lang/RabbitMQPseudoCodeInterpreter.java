@@ -15,6 +15,7 @@ import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.commons.Language;
+import org.vthmgnpipola.pcide.commons.StackTracePrinter;
 
 public class RabbitMQPseudoCodeInterpreter implements PseudoCodeInterpreter {
     private static final Logger logger = LoggerFactory.getLogger(RabbitMQPseudoCodeInterpreter.class);
@@ -38,7 +39,7 @@ public class RabbitMQPseudoCodeInterpreter implements PseudoCodeInterpreter {
                     .getQueue();
         } catch (IOException | TimeoutException e) {
             logger.error("Unable to connect to RabbitMQ!");
-            logger.error(e.getMessage());
+            logger.error(StackTracePrinter.getStackTraceAsString(e));
         }
     }
 
@@ -77,7 +78,7 @@ public class RabbitMQPseudoCodeInterpreter implements PseudoCodeInterpreter {
                         response.offer((List<Language>) ois.readObject());
                     } catch (ClassNotFoundException e) {
                         logger.error("Unable to read object from server (requesting languages)!");
-                        logger.error(e.getMessage());
+                        logger.error(StackTracePrinter.getStackTraceAsString(e));
                     }
                 }
             }, consumerTag -> {});
@@ -85,7 +86,7 @@ public class RabbitMQPseudoCodeInterpreter implements PseudoCodeInterpreter {
             return response.take();
         } catch (IOException | InterruptedException e) {
             logger.error("Error listing available interpreter languages!");
-            logger.error(e.getMessage());
+            logger.error(StackTracePrinter.getStackTraceAsString(e));
             return null;
         }
     }
@@ -102,7 +103,7 @@ public class RabbitMQPseudoCodeInterpreter implements PseudoCodeInterpreter {
             channel.close();
         } catch (TimeoutException e) {
             logger.error("Unable to close RabbitMQ channel!");
-            logger.error(e.getMessage());
+            logger.error(StackTracePrinter.getStackTraceAsString(e));
         }
     }
 }

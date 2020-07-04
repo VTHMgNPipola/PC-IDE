@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.client.Configuration;
 import org.vthmgnpipola.pcide.client.lang.Project;
 import org.vthmgnpipola.pcide.commons.Language;
+import org.vthmgnpipola.pcide.commons.StackTracePrinter;
 
 /**
  * The project dashboard is where projects (or tasks, if the client is connected to a server) are shown, and can be
@@ -152,7 +153,7 @@ public class ProjectDashboard extends JFrame {
             logger.debug("Project list updated.");
         } catch (IOException e) {
             logger.error("Unable to update project list!");
-            logger.error(e.getMessage());
+            logger.error(StackTracePrinter.getStackTraceAsString(e));
         }
     }
 

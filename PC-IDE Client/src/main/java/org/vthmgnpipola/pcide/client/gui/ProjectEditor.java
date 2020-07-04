@@ -1,7 +1,10 @@
 package org.vthmgnpipola.pcide.client.gui;
 
+import com.formdev.flatlaf.icons.FlatFileViewFileIcon;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -9,21 +12,27 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.ResourceBundle;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.client.Configuration;
 import org.vthmgnpipola.pcide.client.lang.FileSystemWatcher;
 import org.vthmgnpipola.pcide.client.lang.Project;
+import org.vthmgnpipola.pcide.commons.StackTracePrinter;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
@@ -44,6 +53,8 @@ public class ProjectEditor extends JFrame {
 
     private JTabbedPane editorTabs;
 
+    private JTree fileTree;
+
     public ProjectEditor(Project project) {
         this.project = project;
         init(project);
@@ -63,6 +74,25 @@ public class ProjectEditor extends JFrame {
             }
         });
 
+        // Menu
+        JMenuBar menuBar = new JMenuBar();
+
+        JMenu fileMenu = new JMenu(language.getString("projectEditor.menu.file"));
+        JMenuItem newMenuItem = new JMenuItem(language.getString("projectEditor.menu.file.new"),
+                new FlatFileViewFileIcon());
+        newMenuItem.addActionListener(e -> {
+            String fileName = JOptionPane.showInputDialog(this,
+                    language.getString("projectEditor.menu.file.new.description"),
+                    language.getString("projectEditor.menu.file.new"), JOptionPane.QUESTION_MESSAGE);
+            createFile(project.getPath(), fileName);
+        });
+        fileMenu.add(newMenuItem);
+        menuBar.add(fileMenu);
+
+        JMenu editMenu = new JMenu(language.getString("projectEditor.menu.edit"));
+        menuBar.add(editMenu);
+        setJMenuBar(menuBar);
+
         // Content
         JPanel contentPane = new JPanel(new BorderLayout());
         Dimension dimension = new Dimension(1024, 576);
@@ -70,7 +100,33 @@ public class ProjectEditor extends JFrame {
 
         projectParentDirectoryNode = new FileMutableTreeNode(new FileNode(project.getPath()));
         updateFileTree();
-        JTree fileTree = new JTree(projectParentDirectoryNode);
+
+        fileTree = new JTree(projectParentDirectoryNode);
+        JPopupMenu fileTreeMenu = new JPopupMenu();
+        JMenuItem newFileTreeFile = new JMenuItem(language.getString("projectEditor.menu.file.new"),
+                new FlatFileViewFileIcon());
+        newFileTreeFile.addActionListener(e -> {
+            String fileName = JOptionPane.showInputDialog(this,
+                    language.getString("projectEditor.menu.file.new.description"),
+                    language.getString("projectEditor.menu.file.new"), JOptionPane.QUESTION_MESSAGE);
+            Path path = project.getPath();
+            TreePath selection = fileTree.getSelectionPath();
+            if (selection != null) {
+                FileMutableTreeNode[] nodes = Arrays.copyOf(selection.getPath(), selection.getPath().length,
+                        FileMutableTreeNode[].class);
+                if (Files.isDirectory(((FileNode) nodes[nodes.length - 1].getUserObject()).path)) {
+                    path = ((FileNode) nodes[nodes.length - 1].getUserObject()).path;
+                } else { // If the selected path is a file the parent must be a directory
+                    path = ((FileNode) nodes[nodes.length - 2].getUserObject()).path;
+                }
+            }
+            createFile(path, fileName);
+            updateFileTree();
+        });
+        JMenuItem updateFileTree = new JMenuItem(language.getString("projectEditor.menu.file.update"));
+        updateFileTree.addActionListener(e -> updateFileTree());
+        fileTreeMenu.add(newFileTreeFile);
+        fileTreeMenu.add(updateFileTree);
         fileTree.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -86,10 +142,34 @@ public class ProjectEditor extends JFrame {
                                         path.getFileName().toString(), editorTabs);
                             } catch (IOException ioException) {
                                 logger.error("Error opening editor on file '" + path.toString() + "'!");
-                                logger.error(ioException.getMessage());
+                                logger.error(StackTracePrinter.getStackTraceAsString(ioException));
                             }
                         }
                     }
+                }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                showPopup(e);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                showPopup(e);
+            }
+
+            private void showPopup(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    fileTreeMenu.show(e.getComponent(), e.getX(), e.getY());
+                }
+            }
+        });
+        fileTree.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_F5) {
+                    updateFileTree();
                 }
             }
         });
@@ -101,17 +181,7 @@ public class ProjectEditor extends JFrame {
         splitPane.setDividerLocation((int) (contentPane.getPreferredSize().width * 0.25));
         contentPane.add(splitPane, BorderLayout.CENTER);
 
-        // Menu
-        JMenuBar menuBar = new JMenuBar();
-
-        JMenu fileMenu = new JMenu(language.getString("projectEditor.menu.file"));
-        menuBar.add(fileMenu);
-
-        JMenu editMenu = new JMenu(language.getString("projectEditor.menu.edit"));
-        menuBar.add(editMenu);
-
         setContentPane(contentPane);
-        setJMenuBar(menuBar);
         pack();
         setLocationRelativeTo(null);
 
@@ -119,14 +189,30 @@ public class ProjectEditor extends JFrame {
         FileSystemWatcher.getInstance().registerListener(project.getPath(), e -> {
             if (e.getEventKind() == ENTRY_CREATE || e.getEventKind() == ENTRY_DELETE) {
                 updateFileTree();
-                fileTree.updateUI();
             }
         });
+    }
+
+    private void createFile(Path basePath, String fileName) {
+        if (fileName != null) {
+            Path filePath = basePath.resolve(fileName);
+            try {
+                Files.createDirectories(filePath.getParent());
+                Files.createFile(filePath);
+                updateFileTree();
+            } catch (IOException ioException) {
+                logger.error("Error creating file/directory!");
+                logger.error(StackTracePrinter.getStackTraceAsString(ioException));
+            }
+        }
     }
 
     private void updateFileTree() {
         projectParentDirectoryNode.removeAllChildren();
         walkDirectory(projectParentDirectoryNode);
+        if (fileTree != null) {
+            fileTree.updateUI();
+        }
     }
 
     private void walkDirectory(FileMutableTreeNode node) {
@@ -142,7 +228,7 @@ public class ProjectEditor extends JFrame {
                 });
             } catch (IOException e) {
                 logger.error("Unable to walk on directory at '" + fileNode.path.toString() + "'!");
-                logger.error(e.getMessage());
+                logger.error(StackTracePrinter.getStackTraceAsString(e));
                 System.exit(-1);
             }
         }

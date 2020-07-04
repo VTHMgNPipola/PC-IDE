@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.client.gui.ProjectDashboard;
 import org.vthmgnpipola.pcide.client.lang.FileSystemWatcher;
+import org.vthmgnpipola.pcide.commons.StackTracePrinter;
 
 /**
  * This is the client side of PC-IDE (PseudoCode Integrated Development Environment).
@@ -50,7 +51,7 @@ public class ClientMain {
                 FileSystemWatcher.getInstance().close();
             } catch (IOException e) {
                 logger.error("Unable to close client!");
-                logger.error(e.getMessage());
+                logger.error(StackTracePrinter.getStackTraceAsString(e));
             }
         }));
     }

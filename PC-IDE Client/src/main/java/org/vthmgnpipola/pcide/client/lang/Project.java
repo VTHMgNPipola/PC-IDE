@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.commons.Language;
+import org.vthmgnpipola.pcide.commons.StackTracePrinter;
 
 public class Project {
     private static final Logger logger = LoggerFactory.getLogger(Project.class);
@@ -44,7 +45,7 @@ public class Project {
                 result.setPath(path);
             } catch (IOException e) {
                 logger.error("Error loading project from '" + path.toString() + "'!");
-                logger.error(e.getMessage());
+                logger.error(StackTracePrinter.getStackTraceAsString(e));
             }
 
             return result;

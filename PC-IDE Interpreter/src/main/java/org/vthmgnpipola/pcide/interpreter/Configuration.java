@@ -14,6 +14,7 @@ import java.util.zip.ZipFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.commons.Language;
+import org.vthmgnpipola.pcide.commons.StackTracePrinter;
 import org.vthmgnpipola.pcide.interpreter.command.RequestExecutor;
 import org.vthmgnpipola.pcide.interpreter.command.RequestReceiver;
 import org.vthmgnpipola.pcide.interpreter.command.SocketRequestReceiver;
@@ -46,7 +47,7 @@ public class Configuration {
                     .getResourceAsStream("interpreter.properties")));
         } catch (IOException e) {
             logger.error("Failed to load interpreter.properties!");
-            logger.error(e.getMessage());
+            logger.error(StackTracePrinter.getStackTraceAsString(e));
             System.exit(-1);
         }
         logger.debug("Properties loaded successfully.");

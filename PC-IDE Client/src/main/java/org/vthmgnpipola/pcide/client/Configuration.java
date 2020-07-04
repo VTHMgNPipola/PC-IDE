@@ -14,6 +14,7 @@ import org.vthmgnpipola.pcide.client.lang.FileSystemWatcher;
 import org.vthmgnpipola.pcide.client.lang.PseudoCodeInterpreter;
 import org.vthmgnpipola.pcide.client.lang.RabbitMQPseudoCodeInterpreter;
 import org.vthmgnpipola.pcide.client.lang.SocketPseudoCodeInterpreter;
+import org.vthmgnpipola.pcide.commons.StackTracePrinter;
 
 /**
  * This class holds the settings of this client. when the {@link #load()} method is called, the {@code client
@@ -50,7 +51,7 @@ public class Configuration {
                     .getResourceAsStream("client.properties")));
         } catch (IOException e) {
             logger.error("Failed to load client.properties!");
-            logger.error(e.getMessage());
+            logger.error(StackTracePrinter.getStackTraceAsString(e));
             System.exit(-1);
         }
 
@@ -82,7 +83,7 @@ public class Configuration {
                 Files.createDirectories(projectsPath);
             } catch (IOException e) {
                 logger.error("Error creating projects folder!");
-                logger.error(e.getMessage());
+                logger.error(StackTracePrinter.getStackTraceAsString(e));
                 System.exit(-1);
             }
         }

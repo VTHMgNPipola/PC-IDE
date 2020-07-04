@@ -3,6 +3,7 @@ package org.vthmgnpipola.pcide.interpreter;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vthmgnpipola.pcide.commons.StackTracePrinter;
 
 public class InterpreterMain {
     private static final Logger logger = LoggerFactory.getLogger(InterpreterMain.class);
@@ -30,7 +31,7 @@ public class InterpreterMain {
                 Configuration.getInstance().getReceiver().close();
             } catch (IOException e) {
                 logger.error("Error closing PC-IDE Interpreter!");
-                logger.error(e.getMessage());
+                logger.error(StackTracePrinter.getStackTraceAsString(e));
             }
         }));
     }

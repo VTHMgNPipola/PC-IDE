@@ -12,6 +12,7 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.client.lang.FileSystemWatcher;
+import org.vthmgnpipola.pcide.commons.StackTracePrinter;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
@@ -54,7 +55,7 @@ public class CodeEditorPane extends JPanel {
                         logger.info("Saved file '" + path.toString() + "'.");
                     } catch (IOException ioException) {
                         logger.error("Unable to save file '" + path.toString() + "'!");
-                        logger.error(ioException.getMessage());
+                        logger.error(StackTracePrinter.getStackTraceAsString(ioException));
                     }
                 }
             }
@@ -66,7 +67,7 @@ public class CodeEditorPane extends JPanel {
                     textArea.setText(Files.readString(path));
                 } catch (IOException ioException) {
                     logger.error("Error updating editor of file '" + path.toString() + "'!");
-                    logger.error(ioException.getMessage());
+                    logger.error(StackTracePrinter.getStackTraceAsString(ioException));
                 }
             }
         });

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vthmgnpipola.pcide.commons.StackTracePrinter;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
@@ -61,7 +62,7 @@ public class FileSystemWatcher extends Thread implements Closeable {
             workingDirectory.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_DELETE);
         } catch (IOException e) {
             logger.error("Unable to change working directory!");
-            logger.error(e.getMessage());
+            logger.error(StackTracePrinter.getStackTraceAsString(e));
         }
         this.workingDirectory = workingDirectory;
     }
@@ -106,7 +107,7 @@ public class FileSystemWatcher extends Thread implements Closeable {
                 key = watchService.take();
             } catch (InterruptedException e) {
                 logger.error("Error listening to changes in directory!");
-                logger.error(e.getMessage());
+                logger.error(StackTracePrinter.getStackTraceAsString(e));
                 break;
             }
 

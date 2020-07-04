@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.client.Configuration;
 import org.vthmgnpipola.pcide.client.lang.Project;
 import org.vthmgnpipola.pcide.commons.Language;
+import org.vthmgnpipola.pcide.commons.StackTracePrinter;
 
 public class CreateProjectDialog extends JDialog {
     private static final Logger logger = LoggerFactory.getLogger(CreateProjectDialog.class);
@@ -74,7 +75,7 @@ public class CreateProjectDialog extends JDialog {
                 mapper.writerWithDefaultPrettyPrinter().writeValue(projectFile.toFile(), project);
             } catch (IOException ioException) {
                 logger.error("Unable to create project!");
-                logger.error(ioException.getMessage());
+                logger.error(StackTracePrinter.getStackTraceAsString(ioException));
             }
 
             projectDashboard.updateProjectList();
