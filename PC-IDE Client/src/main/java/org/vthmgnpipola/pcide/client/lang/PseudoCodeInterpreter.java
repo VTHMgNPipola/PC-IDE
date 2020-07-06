@@ -2,6 +2,7 @@ package org.vthmgnpipola.pcide.client.lang;
 
 import java.io.Closeable;
 import java.util.List;
+import org.fife.ui.rsyntaxtextarea.TokenMaker;
 import org.vthmgnpipola.pcide.commons.Language;
 
 /**
@@ -15,4 +16,6 @@ public interface PseudoCodeInterpreter extends Closeable {
     List<Language> getAvailableLanguages();
 
     boolean isTasksEnabled();
+
+    TokenMaker getTokenMaker(String code);
 }

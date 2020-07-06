@@ -11,6 +11,8 @@ public class Language implements Serializable {
 
     private String name;
     private String version;
+    private String code;
+    private byte[] tokenMakerClass;
 
     public String getName() {
         return name;
@@ -26,6 +28,14 @@ public class Language implements Serializable {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 
     @Override

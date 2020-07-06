@@ -21,11 +21,6 @@
         </dependency>
         <dependency>
             <groupId>com.fifesoft</groupId>
-            <artifactId>rsyntaxtextarea</artifactId>
-            <version>3.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fifesoft</groupId>
             <artifactId>rstaui</artifactId>
             <version>3.1.0</version>
         </dependency>

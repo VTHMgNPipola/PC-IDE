@@ -6,7 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
@@ -29,6 +31,7 @@ public class Configuration {
     private RequestReceiver receiver;
 
     private List<Language> languages;
+    private Map<String, byte[]> tokenMakerClasses;
 
     private Configuration() {
     }
@@ -70,32 +73,62 @@ public class Configuration {
 
         logger.debug("Detecting languages...");
         languages = new ArrayList<>();
+        tokenMakerClasses = new HashMap<>();
+        reloadLanguages();
+
+        logger.debug(String.format("Loaded %d languages.", languages.size()));
+    }
+
+    private void reloadLanguages() throws IOException {
         File languagesDirectory = home.resolve("languages/").toFile();
-        logger.trace(String.format("Language path is '%s'.", languagesDirectory.toString()));
+        logger.trace(String.format("Loading languages is '%s'.", languagesDirectory.toString()));
         File[] langFiles = languagesDirectory.listFiles((dir, name) -> name.endsWith(".zip") ||
                 name.endsWith(".jar"));
-        if (langFiles == null) {
+        if (langFiles == null) { // The array will be null if no .zip/.jar files are found
             langFiles = new File[0];
         }
         for (File f : langFiles) {
             ZipFile file = new ZipFile(f);
             Enumeration<? extends ZipEntry> entries = file.entries();
+
+            Language language = null;
+            String tokenMakerLocation = null;
+            Map<String, ZipEntry> fileEntries = new HashMap<>();
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
+
+                if (!entry.isDirectory()) {
+                    fileEntries.put(entry.getName().replaceAll("/", "."), entry);
+                }
+
                 if (entry.getName().equals("language.properties")) {
                     Properties languageProperties = new Properties();
                     languageProperties.load(file.getInputStream(entry));
 
-                    Language language = new Language();
+                    tokenMakerLocation = languageProperties.getProperty("token_maker_location",
+                            "MyTokenMaker.class");
+
+                    language = new Language();
                     language.setName(languageProperties.getProperty("name"));
                     language.setVersion(languageProperties.getProperty("version"));
+                    language.setCode(languageProperties.getProperty("code"));
                     languages.add(language);
                     logger.debug(String.format("Added language %s %s", language.getName(),
                             language.getVersion()));
                 }
             }
+
+            assert language != null;
+
+            ZipEntry tokenMakerEntry = fileEntries.get(tokenMakerLocation);
+            if (tokenMakerEntry != null) {
+                byte[] tokenMakerClass = file.getInputStream(tokenMakerEntry).readAllBytes();
+                tokenMakerClasses.put(language.getCode() + "/" + tokenMakerLocation.substring(0,
+                        tokenMakerLocation.length() - 6), tokenMakerClass); // Length - 6 to remove the '.class'
+            }
+
+            file.close();
         }
-        logger.debug(String.format("Loaded %d languages.", languages.size()));
     }
 
     public Properties getConfiguration() {
@@ -112,5 +145,9 @@ public class Configuration {
 
     public List<Language> getLanguages() {
         return languages;
+    }
+
+    public Map<String, byte[]> getTokenMakerClasses() {
+        return tokenMakerClasses;
     }
 }

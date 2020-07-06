@@ -6,6 +6,7 @@ import java.util.concurrent.Flow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.commons.ClientRequest;
+import org.vthmgnpipola.pcide.interpreter.command.impl.GetTokenMakerClassesCommand;
 import org.vthmgnpipola.pcide.interpreter.command.impl.HasTasksCommand;
 import org.vthmgnpipola.pcide.interpreter.command.impl.ListLanguagesCommand;
 
@@ -21,6 +22,7 @@ public class RequestExecutor implements Flow.Subscriber<ClientRequest> {
         // TODO: Make org.reflections work so that I can remove this and dynamically add commands
         commands.add(new ListLanguagesCommand());
         commands.add(new HasTasksCommand());
+        commands.add(new GetTokenMakerClassesCommand());
     }
 
     @Override

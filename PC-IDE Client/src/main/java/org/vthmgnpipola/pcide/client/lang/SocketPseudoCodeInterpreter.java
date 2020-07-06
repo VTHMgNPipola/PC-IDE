@@ -3,8 +3,13 @@ package org.vthmgnpipola.pcide.client.lang;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
+import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import org.fife.ui.rsyntaxtextarea.TokenMaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.commons.Language;
@@ -16,6 +21,9 @@ public class SocketPseudoCodeInterpreter implements PseudoCodeInterpreter {
     private final Socket connection;
     private final ObjectOutputStream oos;
     private final ObjectInputStream ois;
+
+    private Map<String, String> tmClassCodes;
+    private ByteClassLoader byteClassLoader;
 
     public SocketPseudoCodeInterpreter(String address, int port) throws IOException {
         connection = new Socket(address, port);
@@ -38,6 +46,39 @@ public class SocketPseudoCodeInterpreter implements PseudoCodeInterpreter {
     @Override
     public boolean isTasksEnabled() {
         return (boolean) callServer("has_tasks", null, Boolean.class);
+    }
+
+    @Override
+    public TokenMaker getTokenMaker(String code) {
+        if (tmClassCodes == null) {
+            Map<String, byte[]> tmClassesEncoded = (Map<String, byte[]>) callServer("get_token_maker_classes",
+                    null, Map.class);
+
+            Map<String, byte[]> tmClassesDecoded = new HashMap<>();
+            tmClassCodes = new HashMap<>();
+            assert tmClassesEncoded != null;
+            for (Map.Entry<String, byte[]> entry : tmClassesEncoded.entrySet()) {
+                String[] keyParts = entry.getKey().split("/");
+                tmClassCodes.put(keyParts[0], keyParts[1]);
+                tmClassesDecoded.put(keyParts[1], entry.getValue());
+            }
+
+            byteClassLoader = new ByteClassLoader(new URL[0], this.getClass().getClassLoader(), tmClassesDecoded);
+        }
+
+        String className = tmClassCodes.get(code);
+        if (className == null) {
+            logger.warn("No TokenMaker found for code " + code);
+            return null;
+        }
+        try {
+            Class<?> tokenMakerClass = byteClassLoader.findClass(className);
+            return (TokenMaker) tokenMakerClass.getDeclaredConstructor().newInstance();
+        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            logger.error("Error creating TokenMaker instance!");
+            logger.error(StackTracePrinter.getStackTraceAsString(e));
+            return null;
+        }
     }
 
     /**

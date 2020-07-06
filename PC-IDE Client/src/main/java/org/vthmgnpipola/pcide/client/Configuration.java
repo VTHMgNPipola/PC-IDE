@@ -8,9 +8,11 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vthmgnpipola.pcide.client.lang.FileSystemWatcher;
+import org.vthmgnpipola.pcide.client.lang.NetworkTokenMakerFactory;
 import org.vthmgnpipola.pcide.client.lang.PseudoCodeInterpreter;
 import org.vthmgnpipola.pcide.client.lang.RabbitMQPseudoCodeInterpreter;
 import org.vthmgnpipola.pcide.client.lang.SocketPseudoCodeInterpreter;
@@ -102,6 +104,9 @@ public class Configuration {
             logger.error("Invalid server mode selected!");
             System.exit(-1);
         }
+
+        logger.debug("Creating NetworkTokenMakerFactory...");
+        TokenMakerFactory.setDefaultInstance(new NetworkTokenMakerFactory());
 
         logger.debug("Starting FileSystemWatcher...");
         FileSystemWatcher.getInstance().start();
