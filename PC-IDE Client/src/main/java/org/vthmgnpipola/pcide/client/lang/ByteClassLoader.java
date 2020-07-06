@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Copied from Alex Miller in StackOverflow.
+ * Originally written by Alex Miller in StackOverflow. Modified by VTHMgNPipola.
  */
 public class ByteClassLoader extends URLClassLoader {
     private final Map<String, byte[]> extraClassDefs;

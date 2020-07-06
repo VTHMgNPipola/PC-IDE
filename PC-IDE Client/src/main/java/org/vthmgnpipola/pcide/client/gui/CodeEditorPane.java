@@ -78,7 +78,7 @@ public class CodeEditorPane extends JPanel {
         String extension = filename.substring(filename.lastIndexOf('.') + 1);
         switch (extension) {
             case "properties" -> textArea.setSyntaxEditingStyle(RSyntaxTextArea.SYNTAX_STYLE_PROPERTIES_FILE);
-            case "json" -> textArea.setSyntaxEditingStyle("text/pc1");
+            case "json" -> textArea.setSyntaxEditingStyle(RSyntaxTextArea.SYNTAX_STYLE_JSON);
             case "xml" -> textArea.setSyntaxEditingStyle(RSyntaxTextArea.SYNTAX_STYLE_XML);
             case "yaml", "yml" -> textArea.setSyntaxEditingStyle(RSyntaxTextArea.SYNTAX_STYLE_YAML);
             case "sh" -> textArea.setSyntaxEditingStyle(RSyntaxTextArea.SYNTAX_STYLE_UNIX_SHELL);
